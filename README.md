@@ -11,7 +11,7 @@ mcpserver_example/
 │       └── main.go        # Entry point
 ├── internal/
 │   ├── mcp/
-│   │   ├── handler.go     # Tool interface and Handler
+│   │   ├── handler.go     # Tool interface
 │   │   └── server.go      # MCP server wrapper
 │   └── tools/
 │       ├── add.go         # "add" tool
@@ -30,7 +30,7 @@ type Tool interface {
 }
 ```
 
-Tools self-register with the MCP server via `mcp.AddTool`. The `Handler` collects tools and the `Server` wires everything together over stdio transport.
+Tools self-register with the MCP server via `mcp.AddTool`. `mcp.New` accepts tools as variadic arguments, registers them, and `Run` selects the transport based on whether an address is provided.
 
 ## Tools
 
@@ -123,8 +123,12 @@ func (t *MyTool) Register(s *mcp.Server) {
 }
 ```
 
-2. Register it in `cmd/server/main.go`:
+2. Register it in `cmd/server/main.go` by adding it to the `toolsList` slice:
 
 ```go
-h := mcpserver.NewHandler(&tools.Add{}, &tools.Greet{}, &tools.MyTool{})
+toolsList := []mcpserver.Tool{
+    &tools.Add{},
+    &tools.Greet{},
+    &tools.MyTool{},
+}
 ```

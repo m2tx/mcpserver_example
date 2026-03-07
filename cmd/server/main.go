@@ -2,31 +2,31 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
+	"os/signal"
 
 	mcpserver "github.com/m2tx/mcpserver_example/internal/mcp"
 	"github.com/m2tx/mcpserver_example/internal/tools"
 )
 
-func getHttpPort() string {
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	addr := ""
 	if port := os.Getenv("HTTP_PORT"); port != "" {
-		return fmt.Sprintf(":%s", port)
+		addr = ":" + port
 	}
 
-	return ""
-}
+	toolsList := []mcpserver.Tool{
+		&tools.Add{},
+		&tools.Greet{},
+	}
 
-func main() {
-	ctx := context.Background()
+	server := mcpserver.New("example-mcp-server", "1.0.0", toolsList...)
 
-	httpPort := getHttpPort()
-
-	handler := mcpserver.NewHandler(&tools.Add{}, &tools.Greet{})
-	server := mcpserver.New("example-mcp-server", "1.0.0", handler)
-
-	if err := server.Run(ctx, httpPort); err != nil {
+	if err := server.Run(ctx, addr); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
 }
