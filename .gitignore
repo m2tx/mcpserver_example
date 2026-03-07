@@ -24,10 +24,12 @@ vendor/
 *.swp
 *.swo
 *~
+.env
 
 # Build output
 /bin/
 /mcpserver_example
+__debug_bin**
 
 # Claude
 .claude/

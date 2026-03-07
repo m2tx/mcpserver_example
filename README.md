@@ -20,12 +20,24 @@ mcpserver_example/
 └── go.sum
 ```
 
+## Architecture
+
+Each tool implements the `Tool` interface:
+
+```go
+type Tool interface {
+    Register(s *mcp.Server)
+}
+```
+
+Tools self-register with the MCP server via `mcp.AddTool`. The `Handler` collects tools and the `Server` wires everything together over stdio transport.
+
 ## Tools
 
-| Tool    | Description              | Arguments              |
-|---------|--------------------------|------------------------|
-| `add`   | Add two numbers together | `a` (float), `b` (float) |
-| `greet` | Greet someone by name    | `name` (string)        |
+| Tool    | Description              | Arguments                  |
+|---------|--------------------------|----------------------------|
+| `add`   | Add two numbers together | `a` (float), `b` (float)   |
+| `greet` | Greet someone by name    | `name` (string)            |
 
 ## Getting Started
 
@@ -41,11 +53,41 @@ go build ./cmd/server
 
 ### Run
 
+**stdio mode** (default):
+
 ```bash
 ./server
 ```
 
-The server communicates over stdio using the MCP protocol.
+**HTTP mode**:
+
+```bash
+HTTP_PORT=8080 ./server
+```
+
+When `HTTP_PORT` is set, the server listens for HTTP connections on that port using the streamable HTTP transport. Otherwise it communicates over stdio.
+
+## Using with MCP Clients
+
+### Claude Desktop
+
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "example": {
+      "command": "/path/to/server"
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add example /path/to/server
+```
 
 ## Adding a New Tool
 
