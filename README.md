@@ -30,7 +30,7 @@ type Tool interface {
 }
 ```
 
-Tools self-register with the MCP server via `mcp.AddTool`. `mcp.New` accepts tools as variadic arguments, registers them, and `Run` selects the transport based on whether an address is provided.
+Tools self-register with the MCP server via `mcp.AddTool`. `mcp.New` accepts tools as variadic arguments, registers them, and `Run` starts the streamable HTTP transport on the given address.
 
 ## Tools
 
@@ -53,40 +53,28 @@ go build ./cmd/server
 
 ### Run
 
-**stdio mode** (default):
-
 ```bash
 ./server
 ```
 
-**HTTP mode**:
+The server defaults to HTTP mode on port **9000**. Set `HTTP_PORT` to override:
 
 ```bash
 HTTP_PORT=8080 ./server
 ```
 
-When `HTTP_PORT` is set, the server listens for HTTP connections on that port using the streamable HTTP transport. Otherwise it communicates over stdio.
-
 ## Using with MCP Clients
 
-### Claude Desktop
+### Claude Desktop / Claude Code (HTTP)
 
-Add the following to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "example": {
-      "command": "/path/to/server"
-    }
-  }
-}
-```
-
-### Claude Code
+Start the server, then register it using the streamable HTTP transport:
 
 ```bash
-claude mcp add example /path/to/server
+./server  # listens on :9000
+```
+
+```bash
+claude mcp add --transport http example http://localhost:9000/mcp
 ```
 
 ## Adding a New Tool
