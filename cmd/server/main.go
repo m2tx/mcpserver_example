@@ -17,7 +17,7 @@ func getHTTPPort() string {
 		return port
 	}
 
-	return "9000" // Default port if not set
+	return "9000"
 }
 
 func main() {
