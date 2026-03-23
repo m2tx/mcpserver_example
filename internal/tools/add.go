@@ -17,6 +17,7 @@ type Add struct{}
 func (a *Add) Register(s *mcp.Server) {
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "add",
+		Title:       "Add Numbers",
 		Description: "Add two numbers together",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, args AddArgs) (*mcp.CallToolResult, any, error) {
 		result := args.A + args.B

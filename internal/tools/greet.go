@@ -16,6 +16,7 @@ type Greet struct{}
 func (g *Greet) Register(s *mcp.Server) {
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "greet",
+		Title:       "Greet Person",
 		Description: "Greet someone by name",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, args GreetArgs) (*mcp.CallToolResult, any, error) {
 		greeting := fmt.Sprintf("Hello, %s! Welcome to the MCP server.", args.Name)

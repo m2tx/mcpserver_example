@@ -12,6 +12,7 @@ type CodeReview struct{}
 func (p *CodeReview) Register(s *mcp.Server) {
 	s.AddPrompt(&mcp.Prompt{
 		Name:        "code_review",
+		Title:       "Code Review Prompt",
 		Description: "Gera um prompt para revisão de código",
 		Arguments: []*mcp.PromptArgument{
 			{Name: "code", Required: true},
