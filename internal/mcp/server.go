@@ -13,14 +13,20 @@ type Server struct {
 	s *sdkmcp.Server
 }
 
-func New(name, version string, tools ...Tool) *Server {
+func New(name, version string, tools []Tool, prompts []Prompt) *Server {
 	s := sdkmcp.NewServer(&sdkmcp.Implementation{
 		Name:    name,
 		Version: version,
 	}, nil)
+
 	for _, t := range tools {
 		t.Register(s)
 	}
+
+	for _, p := range prompts {
+		p.Register(s)
+	}
+
 	return &Server{s: s}
 }
 

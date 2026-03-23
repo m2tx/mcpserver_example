@@ -5,3 +5,7 @@ import sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 type Tool interface {
 	Register(s *sdkmcp.Server)
 }
+
+type Prompt interface {
+	Register(s *sdkmcp.Server)
+}
