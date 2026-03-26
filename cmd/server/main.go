@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	mcpserver "github.com/m2tx/mcpserver_example/internal/mcp"
+	"github.com/m2tx/mcpserver_example/internal/mcp"
 	"github.com/m2tx/mcpserver_example/internal/prompts"
 	"github.com/m2tx/mcpserver_example/internal/tools"
 )
@@ -25,16 +25,16 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	toolsList := []mcpserver.Tool{
+	tools := []mcp.Tool{
 		&tools.Add{},
 		&tools.Greet{},
 	}
 
-	promptsList := []mcpserver.Prompt{
+	prompts := []mcp.Prompt{
 		&prompts.CodeReview{},
 	}
 
-	server := mcpserver.New("mcp-server", "1.0.0", toolsList, promptsList)
+	server := mcp.New("mcp-server", "1.0.0", tools, prompts)
 
 	if err := server.Run(ctx, fmt.Sprintf(":%s", getHTTPPort())); err != nil {
 		log.Fatalf("Server error: %v", err)
