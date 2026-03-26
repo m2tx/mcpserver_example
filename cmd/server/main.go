@@ -7,9 +7,15 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/m2tx/mcpserver_example/internal/client"
 	"github.com/m2tx/mcpserver_example/internal/mcp"
 	"github.com/m2tx/mcpserver_example/internal/prompts"
 	"github.com/m2tx/mcpserver_example/internal/tools"
+)
+
+const (
+	appName = "mcp-server"
+	version = "1.0.0"
 )
 
 func getHTTPPort() string {
@@ -25,18 +31,37 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	tools := []mcp.Tool{
+	ddg := client.NewDuckDuckGoClient()
+
+	toolsList := []mcp.Tool{
 		&tools.Add{},
 		&tools.Greet{},
+		tools.NewWebSearch(ddg),
+		tools.NewMediaSearch(ddg),
 	}
 
-	prompts := []mcp.Prompt{
+	promptsList := []mcp.Prompt{
 		&prompts.CodeReview{},
+		&prompts.AdverseMedia{},
 	}
 
-	server := mcp.New("mcp-server", "1.0.0", tools, prompts)
+	port := getHTTPPort()
 
-	if err := server.Run(ctx, fmt.Sprintf(":%s", getHTTPPort())); err != nil {
+	log.Printf("Starting %s v%s on :%s", appName, version, port)
+
+	log.Printf("Tools loaded (%d):", len(toolsList))
+	for _, t := range toolsList {
+		log.Printf("  - %T", t)
+	}
+
+	log.Printf("Prompts loaded (%d):", len(promptsList))
+	for _, p := range promptsList {
+		log.Printf("  - %T", p)
+	}
+
+	server := mcp.New(appName, version, toolsList, promptsList)
+
+	if err := server.Run(ctx, fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
 }
