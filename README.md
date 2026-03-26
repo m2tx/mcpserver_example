@@ -8,14 +8,21 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 mcpserver_example/
 ├── cmd/
 │   └── server/
-│       └── main.go        # Entry point
+│       └── main.go          # Entry point
 ├── internal/
+│   ├── client/
+│   │   └── duckduckgo.go    # DuckDuckGo HTTP client
 │   ├── mcp/
-│   │   ├── handler.go     # Tool interface
-│   │   └── server.go      # MCP server wrapper
+│   │   ├── handler.go       # Tool and Prompt interfaces
+│   │   └── server.go        # MCP server wrapper
+│   ├── prompts/
+│   │   ├── adversemedia.go  # "adverse_media" prompt
+│   │   └── codereview.go    # "code_review" prompt
 │   └── tools/
-│       ├── add.go         # "add" tool
-│       └── greet.go       # "greet" tool
+│       ├── add.go           # "add" tool
+│       ├── greet.go         # "greet" tool
+│       ├── mediasearch.go   # "media_search" tool
+│       └── websearch.go     # "web_search" tool
 ├── go.mod
 └── go.sum
 ```
@@ -30,14 +37,33 @@ type Tool interface {
 }
 ```
 
-Tools self-register with the MCP server via `mcp.AddTool`. `mcp.New` accepts tools as variadic arguments, registers them, and `Run` starts the streamable HTTP transport on the given address.
+Each prompt implements the `Prompt` interface:
+
+```go
+type Prompt interface {
+    Register(s *mcp.Server)
+}
+```
+
+Tools and prompts self-register with the MCP server. `mcp.New` accepts both slices, registers them all, and `Run` starts the streamable HTTP transport on the given address.
+
+The `DuckDuckGoClient` ([internal/client/duckduckgo.go](internal/client/duckduckgo.go)) scrapes DuckDuckGo's HTML endpoint with built-in rate limiting (1 request/second minimum interval).
 
 ## Tools
 
-| Tool    | Description              | Arguments                  |
-|---------|--------------------------|----------------------------|
-| `add`   | Add two numbers together | `a` (float), `b` (float)   |
-| `greet` | Greet someone by name    | `name` (string)            |
+| Tool           | Description                                                                 | Arguments                                                    |
+|----------------|-----------------------------------------------------------------------------|--------------------------------------------------------------|
+| `add`          | Add two numbers together                                                    | `a` (float), `b` (float)                                     |
+| `greet`        | Greet someone by name                                                       | `name` (string)                                              |
+| `web_search`   | Search the web via DuckDuckGo Instant Answer API                            | `query` (string)                                             |
+| `media_search` | Search online media about a person across news, legal, and sanctions topics | `name` (string), `context` (string, optional)                |
+
+## Prompts
+
+| Prompt          | Description                                                              | Arguments                                                      |
+|-----------------|--------------------------------------------------------------------------|----------------------------------------------------------------|
+| `code_review`   | Structured code review guidance                                          | `code` (string)                                                |
+| `adverse_media` | Compliance-oriented adverse media analysis of `media_search` results     | `name` (string), `search_results` (string), `context` (string, optional) |
 
 ## Getting Started
 
@@ -114,9 +140,21 @@ func (t *MyTool) Register(s *mcp.Server) {
 2. Register it in `cmd/server/main.go` by adding it to the `toolsList` slice:
 
 ```go
-toolsList := []mcpserver.Tool{
+toolsList := []mcp.Tool{
     &tools.Add{},
     &tools.Greet{},
     &tools.MyTool{},
+}
+```
+
+## Adding a New Prompt
+
+1. Create a new file in `internal/prompts/`, e.g. `internal/prompts/myprompt.go`.
+2. Register it in `cmd/server/main.go` by adding it to the `promptsList` slice:
+
+```go
+promptsList := []mcp.Prompt{
+    &prompts.CodeReview{},
+    &prompts.MyPrompt{},
 }
 ```
