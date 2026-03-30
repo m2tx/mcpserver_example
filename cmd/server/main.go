@@ -37,12 +37,10 @@ func main() {
 		&tools.Add{},
 		&tools.Greet{},
 		tools.NewWebSearch(ddg),
-		tools.NewMediaSearch(ddg),
 	}
 
 	promptsList := []mcp.Prompt{
 		&prompts.CodeReview{},
-		&prompts.AdverseMedia{},
 	}
 
 	port := getHTTPPort()
