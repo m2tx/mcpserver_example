@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 
@@ -28,6 +28,8 @@ func getHTTPPort() string {
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
@@ -45,21 +47,20 @@ func main() {
 
 	port := getHTTPPort()
 
-	log.Printf("Starting %s v%s on :%s", appName, version, port)
+	logger.Info("starting server", "app", appName, "version", version, "port", port)
 
-	log.Printf("Tools loaded (%d):", len(toolsList))
 	for _, t := range toolsList {
-		log.Printf("  - %T", t)
+		logger.Info("tool", "type", fmt.Sprintf("%T", t))
 	}
 
-	log.Printf("Prompts loaded (%d):", len(promptsList))
 	for _, p := range promptsList {
-		log.Printf("  - %T", p)
+		logger.Info("prompt", "type", fmt.Sprintf("%T", p))
 	}
 
-	server := mcp.New(appName, version, toolsList, promptsList)
+	server := mcp.New(appName, version, toolsList, promptsList, logger)
 
 	if err := server.Run(ctx, fmt.Sprintf(":%s", port)); err != nil {
-		log.Fatalf("Server error: %v", err)
+		logger.Error("server error", "err", err)
+		os.Exit(1)
 	}
 }

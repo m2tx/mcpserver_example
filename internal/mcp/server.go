@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,10 +11,11 @@ import (
 )
 
 type Server struct {
-	s *sdkmcp.Server
+	s      *sdkmcp.Server
+	logger *slog.Logger
 }
 
-func New(name, version string, tools []Tool, prompts []Prompt) *Server {
+func New(name, version string, tools []Tool, prompts []Prompt, logger *slog.Logger) *Server {
 	s := sdkmcp.NewServer(&sdkmcp.Implementation{
 		Name:    name,
 		Version: version,
@@ -27,7 +29,7 @@ func New(name, version string, tools []Tool, prompts []Prompt) *Server {
 		p.Register(s)
 	}
 
-	return &Server{s: s}
+	return &Server{s: s, logger: logger}
 }
 
 // Run starts the server. If addr is non-empty it listens for HTTP connections
@@ -36,7 +38,9 @@ func (srv *Server) Run(ctx context.Context, addr string) error {
 	if addr != "" {
 		handler := sdkmcp.NewStreamableHTTPHandler(func(r *http.Request) *sdkmcp.Server {
 			return srv.s
-		}, nil)
+		}, &sdkmcp.StreamableHTTPOptions{
+			Logger: srv.logger,
+		})
 		httpSrv := &http.Server{Addr: addr, Handler: handler}
 		go func() {
 			<-ctx.Done()
