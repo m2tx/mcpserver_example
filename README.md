@@ -16,12 +16,10 @@ mcpserver_example/
 │   │   ├── handler.go       # Tool and Prompt interfaces
 │   │   └── server.go        # MCP server wrapper
 │   ├── prompts/
-│   │   ├── adversemedia.go  # "adverse_media" prompt
 │   │   └── codereview.go    # "code_review" prompt
 │   └── tools/
 │       ├── add.go           # "add" tool
 │       ├── greet.go         # "greet" tool
-│       ├── mediasearch.go   # "media_search" tool
 │       └── websearch.go     # "web_search" tool
 ├── go.mod
 └── go.sum
@@ -51,19 +49,17 @@ The `DuckDuckGoClient` ([internal/client/duckduckgo.go](internal/client/duckduck
 
 ## Tools
 
-| Tool           | Description                                                                 | Arguments                                                    |
-|----------------|-----------------------------------------------------------------------------|--------------------------------------------------------------|
-| `add`          | Add two numbers together                                                    | `a` (float), `b` (float)                                     |
-| `greet`        | Greet someone by name                                                       | `name` (string)                                              |
-| `web_search`   | Search the web via DuckDuckGo Instant Answer API                            | `query` (string)                                             |
-| `media_search` | Search online media about a person across news, legal, and sanctions topics | `name` (string), `context` (string, optional)                |
+| Tool         | Description                                      | Arguments               |
+|--------------|--------------------------------------------------|-------------------------|
+| `add`        | Add two numbers together                         | `a` (float), `b` (float)|
+| `greet`      | Greet someone by name                            | `name` (string)         |
+| `web_search` | Search the web using DuckDuckGo Instant Answer API | `query` (string)      |
 
 ## Prompts
 
-| Prompt          | Description                                                              | Arguments                                                      |
-|-----------------|--------------------------------------------------------------------------|----------------------------------------------------------------|
-| `code_review`   | Structured code review guidance                                          | `code` (string)                                                |
-| `adverse_media` | Compliance-oriented adverse media analysis of `media_search` results     | `name` (string), `search_results` (string), `context` (string, optional) |
+| Prompt        | Description                      | Arguments                                    |
+|---------------|----------------------------------|----------------------------------------------|
+| `code_review` | Structured code review guidance  | `code` (string), `language` (string, optional)|
 
 ## Getting Started
 
@@ -143,6 +139,7 @@ func (t *MyTool) Register(s *mcp.Server) {
 toolsList := []mcp.Tool{
     &tools.Add{},
     &tools.Greet{},
+    tools.NewWebSearch(ddg),
     &tools.MyTool{},
 }
 ```
@@ -155,6 +152,6 @@ toolsList := []mcp.Tool{
 ```go
 promptsList := []mcp.Prompt{
     &prompts.CodeReview{},
-    &prompts.MyPrompt{},
+    &prompts.MyPrompt{}, // your new prompt
 }
 ```

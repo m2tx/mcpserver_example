@@ -36,7 +36,7 @@ This is a minimal [MCP](https://modelcontextprotocol.io) server in Go using the 
 
 - **`DuckDuckGoClient`** ([internal/client/duckduckgo.go](internal/client/duckduckgo.go)): HTTP client that scrapes DuckDuckGo's HTML endpoint. Has built-in rate limiting (1 req/s minimum interval). Shared across tools that need web search.
 
-- **`Server`** ([internal/mcp/server.go](internal/mcp/server.go)): Wraps the SDK server. `New(name, version, tools, prompts)` registers all tools and prompts. `Run(ctx, addr)` starts streamable HTTP transport on the given address with graceful shutdown on context cancellation.
+- **`Server`** ([internal/mcp/server.go](internal/mcp/server.go)): Wraps the SDK server. `New(name, version, tools, prompts, logger)` registers all tools and prompts. `Run(ctx, addr)` starts streamable HTTP transport on the given address with graceful shutdown on context cancellation. Passing an empty `addr` falls back to stdio transport.
 
 - **Entry point** ([cmd/server/main.go](cmd/server/main.go)): Sets up signal-aware context (`signal.NotifyContext`), resolves the port via `getHTTPPort()` (reads `HTTP_PORT` env var, defaults to `9000`), instantiates shared clients, and calls `Run`. Logs loaded tools and prompts at startup.
 
