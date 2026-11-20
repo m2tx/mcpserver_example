@@ -12,6 +12,8 @@ mcpserver_example/
 ├── internal/
 │   ├── client/
 │   │   └── duckduckgo.go    # DuckDuckGo HTTP client
+│   ├── docs/
+│   │   └── embedder.go      # Local hash-embedding document index
 │   ├── mcp/
 │   │   ├── handler.go       # Tool and Prompt interfaces
 │   │   └── server.go        # MCP server wrapper
@@ -20,7 +22,9 @@ mcpserver_example/
 │   └── tools/
 │       ├── add.go           # "add" tool
 │       ├── greet.go         # "greet" tool
+│       ├── searchdocs.go    # "search_docs" tool
 │       └── websearch.go     # "web_search" tool
+├── docs/                    # Documents indexed by search_docs (contents git-ignored)
 ├── go.mod
 └── go.sum
 ```
@@ -47,6 +51,8 @@ Tools and prompts self-register with the MCP server. `mcp.New` accepts both slic
 
 The `DuckDuckGoClient` ([internal/client/duckduckgo.go](internal/client/duckduckgo.go)) scrapes DuckDuckGo's HTML endpoint with built-in rate limiting (1 request/second minimum interval).
 
+The `Embedder` ([internal/docs/embedder.go](internal/docs/embedder.go)) indexes every `.txt`, `.md` and `.pdf` file in `DOCS_DIR` at startup, split into ~800-character chunks, using local feature-hashing embeddings (no external API). `search_docs` returns the 3 chunks with the highest cosine similarity to the query.
+
 ## Tools
 
 | Tool         | Description                                      | Arguments               |
@@ -54,6 +60,7 @@ The `DuckDuckGoClient` ([internal/client/duckduckgo.go](internal/client/duckduck
 | `add`        | Add two numbers together                         | `a` (float), `b` (float)|
 | `greet`      | Greet someone by name                            | `name` (string)         |
 | `web_search` | Search the web using DuckDuckGo Instant Answer API | `query` (string)      |
+| `search_docs` | Search the local document library (`DOCS_DIR`)   | `query` (string)        |
 
 ## Prompts
 
@@ -84,6 +91,11 @@ The server defaults to HTTP mode on port **9000**. Set `HTTP_PORT` to override:
 ```bash
 HTTP_PORT=8080 ./server
 ```
+
+| Variable | Default | Description |
+|---|---|---|
+| `HTTP_PORT` | `9000` | HTTP listen port |
+| `DOCS_DIR` | `docs` | Directory indexed for `search_docs` (missing/empty → no results) |
 
 ## Using with MCP Clients
 
@@ -140,6 +152,7 @@ toolsList := []mcp.Tool{
     &tools.Add{},
     &tools.Greet{},
     tools.NewWebSearch(ddg),
+    tools.NewSearchDocs(embedder),
     &tools.MyTool{},
 }
 ```

@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/m2tx/mcpserver_example/internal/client"
+	"github.com/m2tx/mcpserver_example/internal/docs"
 	"github.com/m2tx/mcpserver_example/internal/mcp"
 	"github.com/m2tx/mcpserver_example/internal/prompts"
 	"github.com/m2tx/mcpserver_example/internal/tools"
@@ -17,6 +18,14 @@ const (
 	appName = "mcp-server"
 	version = "1.0.0"
 )
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+
+	return def
+}
 
 func getHTTPPort() string {
 	port := os.Getenv("HTTP_PORT")
@@ -35,10 +44,17 @@ func main() {
 
 	ddg := client.NewDuckDuckGoClient()
 
+	embedder := docs.NewEmbedder(logger)
+	if err := embedder.Index(getEnv("DOCS_DIR", "docs")); err != nil {
+		logger.Error("index docs", "err", err)
+		os.Exit(1)
+	}
+
 	toolsList := []mcp.Tool{
 		&tools.Add{},
 		&tools.Greet{},
 		tools.NewWebSearch(ddg),
+		tools.NewSearchDocs(embedder),
 	}
 
 	promptsList := []mcp.Prompt{
