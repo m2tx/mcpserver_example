@@ -36,9 +36,11 @@ This is a minimal [MCP](https://modelcontextprotocol.io) server in Go using the 
 
 - **`DuckDuckGoClient`** ([internal/client/duckduckgo.go](internal/client/duckduckgo.go)): HTTP client that scrapes DuckDuckGo's HTML endpoint. Has built-in rate limiting (1 req/s minimum interval). Shared across tools that need web search.
 
+- **`Embedder`** ([internal/docs/embedder.go](internal/docs/embedder.go)): indexes `.txt`/`.md`/`.pdf` files in `DOCS_DIR` (default `docs`) at startup with local hash embeddings (no external API). Used by the `search_docs` tool ([internal/tools/searchdocs.go](internal/tools/searchdocs.go)), which returns the top 3 chunks as text. A missing directory is not an error; an unreadable PDF is fatal.
+
 - **`Server`** ([internal/mcp/server.go](internal/mcp/server.go)): Wraps the SDK server. `New(name, version, tools, prompts, logger)` registers all tools and prompts. `Run(ctx, addr)` starts streamable HTTP transport on the given address with graceful shutdown on context cancellation. Passing an empty `addr` falls back to stdio transport.
 
-- **Entry point** ([cmd/server/main.go](cmd/server/main.go)): Sets up signal-aware context (`signal.NotifyContext`), resolves the port via `getHTTPPort()` (reads `HTTP_PORT` env var, defaults to `9000`), instantiates shared clients, and calls `Run`. Logs loaded tools and prompts at startup.
+- **Entry point** ([cmd/server/main.go](cmd/server/main.go)): Sets up signal-aware context (`signal.NotifyContext`), resolves the port via `getHTTPPort()` (reads `HTTP_PORT` env var, defaults to `9000`), instantiates shared clients and the docs `Embedder`, and calls `Run`. Logs loaded tools and prompts at startup.
 
 ### Adding a new tool
 
@@ -54,3 +56,4 @@ This is a minimal [MCP](https://modelcontextprotocol.io) server in Go using the 
 
 - **HTTP** (default, port `9000`): streamable HTTP transport, one SDK server instance shared across requests.
 - Set `HTTP_PORT=<port>` to override the default port.
+- Set `DOCS_DIR=<dir>` to change the directory indexed by `search_docs`.
